@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Smalot\PdfParser\Parser;
 
 class PdfController extends Controller
@@ -54,7 +55,12 @@ class PdfController extends Controller
     private function uploadPdf($file)
     {
         $fileName = time() . '_' . $file->getClientOriginalName();
-        return $file->storeAs('pdfs', $fileName, 'public');
+        $filePath = $file->storeAs('pdfs', $fileName, 'public');
+        
+        // Log the file path for debugging
+        Log::info('File uploaded to: ' . $filePath);
+    
+        return $filePath;
     }
 
     /**
