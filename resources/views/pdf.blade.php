@@ -112,7 +112,6 @@
             </div>
         </div>
 
-        <!-- Result Section -->
         <div class="card mt-4" id="resultCard" style="display: none;">
             <div class="card-header">
                 Processed Result
@@ -120,7 +119,6 @@
             <div class="card-body">
                 <h5>Uploaded File: <span id="fileName" class="file-name"></span></h5>
 
-                <!-- Chat Box for QA Responses -->
                 <div class="chat-box" id="chatBox">
                     <div class="chat-message">Processing your PDF...</div>
                 </div>
@@ -211,17 +209,7 @@
             }
         });
 
-        // Function to copy the text to clipboard
-        function copyToClipboard(text) {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
 
-            alert('Copied to clipboard!');
-        }
     </script>
 
 </body>
