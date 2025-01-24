@@ -98,6 +98,8 @@ class PdfController extends Controller
                 ['role' => 'user', 'content' => $enhancedText],
             ],
             'model' => 'llama-3.3-70b-versatile',
+            'max_tokens' => 18890, 
+
         ]);
     
         if ($response->successful()) {
