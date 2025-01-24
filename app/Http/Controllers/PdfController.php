@@ -88,7 +88,7 @@ class PdfController extends Controller
         $apiKey = env('GROQ_API_KEY');
         $llamaApiUrl = env('LLAMA_API_URL');
     
-        $enhancedText = "Cover all the important points and provide a complete, detailed explanation, including both questions and answers with example, based on the following content:\n\n" . $text;
+        $enhancedText = "Cover all the important points and provide a complete, detailed explanation, including both 30 questions and answers with example, based on the following content:\n\n" . $text;
     
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $apiKey,
