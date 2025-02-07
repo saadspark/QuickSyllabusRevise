@@ -8,12 +8,13 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsAppWebhookController extends Controller
 {
-    return 1;
+    
     /**
      * Handle incoming WhatsApp webhook messages.
      */
     public function receiveWebhook(Request $request)
     {
+        
         Log::info('Received WhatsApp webhook', $request->all());
 
         // --- STEP 1: Extract the message and sender information ---
