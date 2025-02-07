@@ -8,6 +8,97 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsAppWebhookController extends Controller
 {
+
+        /**
+     * Verify the webhook by checking the verify token.
+     */
+    public function verify(Request $request)
+    {
+        $verifyToken = $request->query('hub_verify_token');
+        $challenge   = $request->query('hub_challenge');
+
+        if ($verifyToken && $verifyToken === env('WHATSAPP_VERIFY_TOKEN')) {
+            return response($challenge, 200);
+        }
+
+        return response('Invalid Verify Token', 403);
+    }
+
+    /**
+     * Handle incoming WhatsApp messages.
+     *  - Extract the message from the incoming webhook payload.
+     *  - Forward the message to ChatGPT.
+     *  - Send the ChatGPT reply back via the Meta WhatsApp API.
+     */
+    public function handleMessage(Request $request)
+    {
+        $data = $request->all();
+
+        // Log the incoming payload for debugging purposes.
+        Log::info('WhatsApp webhook payload:', $data);
+
+        // Check if the expected message data exists.
+        if (!isset($data['entry'][0]['changes'][0]['value']['messages'][0])) {
+            return response('No message found in payload', 200);
+        }
+
+        $messageData = $data['entry'][0]['changes'][0]['value']['messages'][0];
+        $sender      = $messageData['from']; // Sender's phone number
+        $messageText = $messageData['text']['body'] ?? '';
+
+        if (!$messageText) {
+            return response('No text message found', 200);
+        }
+
+        // ==========================
+        // Step 2A. Call ChatGPT API
+        // ==========================
+        $openaiResponse = Http::withHeaders([
+            'Authorization' => 'Bearer ' . env('OPENAI_API_KEY'),
+            'Content-Type'  => 'application/json',
+        ])->post('https://api.openai.com/v1/chat/completions', [
+            'model'    => 'gpt-3.5-turbo',
+            'messages' => [
+                ['role' => 'system', 'content' => 'You are a helpful assistant.'],
+                ['role' => 'user',   'content' => $messageText],
+            ],
+        ]);
+
+        if (!$openaiResponse->successful()) {
+            Log::error('Error from ChatGPT API:', ['response' => $openaiResponse->body()]);
+            return response('Error processing your message', 500);
+        }
+
+        $chatGptData  = $openaiResponse->json();
+        $replyMessage = $chatGptData['choices'][0]['message']['content'] 
+                        ?? 'Sorry, I could not generate a response.';
+
+        // ================================
+        // Step 2B. Send reply via WhatsApp
+        // ================================
+        $phoneNumberId = env('WHATSAPP_PHONE_NUMBER_ID');
+        $metaToken     = env('META_WHATSAPP_TOKEN');
+
+        $whatsappResponse = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $metaToken,
+            'Content-Type'  => 'application/json',
+        ])->post("https://graph.facebook.com/v15.0/{$phoneNumberId}/messages", [
+            'messaging_product' => 'whatsapp',
+            'to'                => $sender,
+            'type'              => 'text',
+            'text'              => ['body' => $replyMessage],
+        ]);
+
+        if (!$whatsappResponse->successful()) {
+            Log::error('Error sending message via WhatsApp API:', ['response' => $whatsappResponse->body()]);
+        }
+
+        return response('Message processed', 200);
+    }
+
+
+
+
     
     /**
      * Handle incoming WhatsApp webhook messages.

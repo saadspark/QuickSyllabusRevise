@@ -9,3 +9,6 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::post('/webhook', [WhatsAppWebhookController::class, 'receiveWebhook']);
+
+Route::get('/webhook', [WhatsAppWebhookController::class, 'verify']);
+Route::post('/webhook', [WhatsAppWebhookController::class, 'handleMessage']);
