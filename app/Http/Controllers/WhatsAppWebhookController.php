@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class WhatsAppWebhookController extends Controller
 {
+    return 1;
     /**
      * Handle incoming WhatsApp webhook messages.
      */
